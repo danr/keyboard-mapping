@@ -9,7 +9,8 @@ int main(void) {
     while (fread(&event, sizeof(event), 1, stdin) == 1) {
         if (event.type == EV_KEY) {
             switch (event.code) {
-                case KEY_RIGHTALT:   event.code = KEY_RIGHTSHIFT; break;
+                // case KEY_RIGHTALT:   event.code = KEY_RIGHTSHIFT; break;
+                case KEY_RIGHTALT:   event.code = KEY_ENTER; break;
             }
         }
 

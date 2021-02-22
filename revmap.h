@@ -1,7 +1,9 @@
 #ifndef revmap_h_INCLUDED
 #define revmap_h_INCLUDED
 
-char revmap[195][40] = {
+#define REVMAP_SIZE 195
+
+char revmap[REVMAP_SIZE][40] = {
     "KEY_RESERVED",         // 0
     "KEY_ESC",              // 1
     "KEY_1",                // 2

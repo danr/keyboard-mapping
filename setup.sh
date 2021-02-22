@@ -3,7 +3,9 @@ set -x
 set -euo pipefail
 
 sudo rm -f /dev/shm/{Both,Left,Right} || true
-sudo killall intercept mux uinput dual-function-keys xcape || true
+sudo killall intercept mux uinput dual-function-keys || true
+# sudo killall xcape || true
+sudo rm -f log || true
 
 mux -c Left -c Right -c Both
 
@@ -25,11 +27,11 @@ MAPPINGS:
 
 sudo intercept -g $LEFT | mux -o Left &
 sudo intercept -g $RIGHT | mux -o Right &
-mux -i Left | dual-function-keys -c dual-left.yml | mux -o Both &
-mux -i Right | dual-function-keys -c dual-right.yml | ./rhand2 | mux -o Both &
+mux -i Left  | ./remap KEY_SPACE KEY_LEFTSHIFT | mux -o Both &
+mux -i Right | ./remap KEY_RIGHTALT KEY_ENTER | mux -o Both &
 mux -i Both | ./modifiers | sudo uinput -d $LEFT &
 
-sleep 1
+sleep 0.4
 
 setxkbmap dvorak -option "compose:102"
 
@@ -47,10 +49,8 @@ keycode 108 = Mode_switch
 add Mod5 = Mode_switch
 add Mod1 = Alt_L Alt_R
 
-! escape with return on caps lock
-keycode 66 = Escape Escape Return Return
-! tab with backspace
-keycode 23 = Tab Tab BackSpace BackSpace
+! space with shift is enter
+keycode 65 = space Return
 
 ! a A å Å
 keycode 38 = U61 U41 UE5 UC5

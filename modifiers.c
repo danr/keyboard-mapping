@@ -25,106 +25,159 @@ int main(void) {
     setbuf(stdin, NULL), setbuf(stdout, NULL);
 
     int L_mode = 0;
-    int R_mode = 0;
-    int desired[COUNT];
-    int actual[COUNT];
+    int Transfer_mode = 0;
     int Nav_mode = 0;
+
+    #define MS 128
+
+    int Actual[MS];
+    int Desired[MS];
+    int Modal[MS];
+
+    void clear(int* arr, int val) {
+        for (int i = 0; i < MS; i++) {
+            arr[i] = val;
+        }
+    }
+
+    clear(Desired, -1);
+    clear(Actual, 0);
+    clear(Modal, 0);
 
     FILE* log = fopen("log", "a");
 
+    void send(struct input_event event, char* reason) {
+        if (event.code != KEY_KATAKANA) {
+            fwrite(&event, sizeof(event), 1, stdout);
+        }
+
+        if (event.type == EV_KEY && event.code < MS) {
+            Actual[event.code] = event.value;
+            if (event.value > -1) {
+                fprintf(log, "L_mode: %d ", L_mode);
+                for (int i = 0; i < MS; ++i) {
+                    if (Actual[i] == 0) {
+                        fprintf(log, " ");
+                    } else {
+                        fprintf(log, "%c", revmap[i][4]);
+                    }
+                }
+                fprintf(log, " %d %s %s %d\n", event.value, reason, revmap[event.code], event.code);
+                fflush(log);
+            }
+        }
+    };
+
     struct input_event event;
+
     while (fread(&event, sizeof(event), 1, stdin) == 1) {
         int passthrough = 1;
 
         if (event.type == EV_KEY) {
-            switch (event.code) {
-                case KEY_LEFTALT:
-                    Nav_mode = (event.value) > 0;
-                case KEY_LEFTSHIFT:
-                    if (!R_mode) {
-                        L_mode = (event.value > 0);
-                        for (int i = 0; i < COUNT; i++) {
-                            desired[i] = 0;
-                        }
-                        passthrough = 0;
-                    }
-                    break;
-
-                case KEY_RIGHTSHIFT:
-                    if (!L_mode) {
-                        R_mode = (event.value > 0);
-                        for (int i = 0; i < COUNT; i++) {
-                            desired[i] = 0;
-                        }
-                        passthrough = 0;
-                    } else {
-                        event.code = KEY_ENTER;
-                    }
-                    break;
-
-                case KEY_A:         if (L_mode) { passthrough = 0; desired[GUI]         = event.value > 0; } break;
-                case KEY_S:         if (L_mode) { passthrough = 0; desired[ALT]         = event.value > 0; } break;
-                case KEY_D:         if (L_mode) { passthrough = 0; desired[DOUBLESHIFT] = event.value > 0; } break;
-                case KEY_F:         if (L_mode) { passthrough = 0; desired[CONTROL]     = event.value > 0; } break;
-                case KEY_W:         if (L_mode) { passthrough = 0; desired[META]        = event.value > 0; } break;
-                case KEY_E:         if (L_mode) { passthrough = 0; desired[DOUBLESHIFT] = event.value > 0; } break;
-
-                case KEY_SEMICOLON: if (R_mode) { passthrough = 0; desired[GUI]         = event.value > 0; } break;
-                case KEY_L:         if (R_mode) { passthrough = 0; desired[ALT]         = event.value > 0; } break;
-                case KEY_K:         if (R_mode) { passthrough = 0; desired[DOUBLESHIFT] = event.value > 0; } break;
-                case KEY_J:         if (R_mode) { passthrough = 0; desired[CONTROL]     = event.value > 0; } break;
-                case KEY_O:         if (R_mode) { passthrough = 0; desired[META]        = event.value > 0; } break;
-                case KEY_I:         if (R_mode) { passthrough = 0; desired[DOUBLESHIFT] = event.value > 0; } break;
+            if (event.code == KEY_LEFTSHIFT || event.code == KEY_LEFTALT) {
+                L_mode = (event.value > 0);
+                if (event.value != 2) {
+                    clear(Desired, 0);
+                }
+                if (event.code == KEY_LEFTALT && event.value > 0) {
+                    Transfer_mode = 1;
+                } else {
+                    Transfer_mode = 0;
+                }
+                passthrough = 0;
             }
-            if (Nav_mode) {
+
+            void shiftmap(int key_f, int key_ctrl) {
+                Modal[key_ctrl] = 1;
+                if (event.code == key_f) {
+                    if (L_mode) {
+                        passthrough = 0;
+                        Desired[key_f] = 0;
+                        Desired[key_ctrl] = event.value;
+                    } else {
+                        passthrough = 1;
+                        Desired[key_f] = -1;
+                        Desired[key_ctrl] = -1;
+                    }
+                }
+            }
+
+            shiftmap(KEY_A, KEY_RIGHTSHIFT); // DOUBLESHIFT
+            shiftmap(KEY_S, KEY_KATAKANA); // NAV
+            shiftmap(KEY_D, KEY_LEFTMETA); // GUI
+            shiftmap(KEY_F, KEY_LEFTCTRL); // CTRL
+            shiftmap(KEY_W, KEY_RIGHTALT); // AltGR: maybe more correct to call it RIGHTMETA
+            shiftmap(KEY_E, KEY_LEFTALT);  // ALT
+
+            if (Actual[KEY_KATAKANA]) {
                 switch (event.code) {
                     case KEY_J: event.code = KEY_LEFT; break;
                     case KEY_K: event.code = KEY_DOWN; break;
                     case KEY_L: event.code = KEY_UP; break;
                     case KEY_SEMICOLON: event.code = KEY_RIGHT; break;
 
+                    case KEY_M: event.code = KEY_HOME; break;
                     case KEY_COMMA: event.code = KEY_PAGEDOWN; break;
                     case KEY_DOT: event.code = KEY_PAGEUP; break;
-                    case KEY_I: event.code = KEY_HOME; break;
-                    case KEY_O: event.code = KEY_END; break;
+                    case KEY_SLASH: event.code = KEY_END; break;
                 }
             }
-            if (event.code >= 0 && event.code < 195 && event.value != 2) {
-                fprintf(log, "%d %s %d\n", passthrough, revmap[event.code], event.value);
-                fflush(log);
+            if (Transfer_mode) {
+                int c = event.code;
+                int r0 = c >= KEY_7 && c <= KEY_MINUS;
+                int r1 = c >= KEY_U && c <= KEY_LEFTBRACE;
+                int r2 = c >= KEY_J && c <= KEY_APOSTROPHE;
+                int r3 = c >= KEY_M && c <= KEY_RIGHTSHIFT;
+                if (r0 || r1 || r2 || r3) {
+                    event.code = c - 6;
+                }
+            }
+        }
+
+        struct input_event prototype = event;
+
+        {
+            struct input_event event = prototype;
+            for (int i = 0; i < MS; ++i) {
+                if (Desired[i] == 0) {
+                    if (Actual[i] != Desired[i]) {
+                        event.type = EV_KEY;
+                        event.code = i;
+                        event.value = Desired[i];
+                        send(event, "desired off");
+                    }
+                    Desired[i] = -1;
+                }
+            }
+
+            if (L_mode && !Transfer_mode) {
+                int on = 0;
+                for (int i = 0; i < MS; i++) {
+                    if (Modal[i]) {
+                        if (Desired[i] > 0 || Actual[i] > 0) {
+                            on++;
+                        }
+                    }
+                }
+                Desired[KEY_LEFTSHIFT] = on == 0;
+            }
+
+            for (int i = 0; i < MS; ++i) {
+                if (Desired[i] > 0) {
+                    if (Actual[i] != Desired[i]) {
+                        event.type = EV_KEY;
+                        event.code = i;
+                        event.value = Desired[i];
+                        send(event, Desired[i] == 1 ? "desired on " : "desired two");
+                    }
+                    Desired[i] = -1;
+                }
             }
         }
 
         if (passthrough) {
-            fwrite(&event, sizeof(event), 1, stdout);
+            send(event, "passthrough");
         }
 
-        if (!passthrough) {
-            int shift = 1;
-            for (int i = 0; i < COUNT; ++i) {
-                if (i != SHIFT) {
-                    if (desired[i]) {
-                        shift = 0;
-                    }
-                }
-            }
-            desired[SHIFT] = (L_mode || R_mode) && ((!Nav_mode && shift) || desired[DOUBLESHIFT]);
-            for (int i = 0; i < COUNT; ++i) {
-                if (i != DOUBLESHIFT) {
-                    if (desired[i] != actual[i]) {
-                        event.type = EV_KEY;
-                        event.code = tr[i];
-                        event.value = desired[i];
-                        actual[i] = desired[i];
-                        fprintf(log, "! %s %d\n", revmap[event.code], event.value);
-                        fflush(log);
-                        fwrite(&event, sizeof(event), 1, stdout);
-                    }
-                }
-            }
-
-            fprintf(log, "%d %d %d %d %d %d %d %d %d \n", L_mode, R_mode, Nav_mode, actual[SHIFT], actual[GUI], actual[ALT], actual[CONTROL], actual[META], actual[DOUBLESHIFT]);
-            fflush(log);
-        }
     }
 }
