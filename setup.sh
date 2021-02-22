@@ -22,12 +22,9 @@ MAPPINGS:
     HOLD: KEY_LEFTALT
 '
 
-> dual-right.yml echo '
-'
-
 sudo intercept -g $LEFT | mux -o Left &
 sudo intercept -g $RIGHT | mux -o Right &
-mux -i Left  | ./remap KEY_SPACE KEY_LEFTSHIFT | mux -o Both &
+mux -i Left  | dual-function-keys -c dual-left.yml | mux -o Both &
 mux -i Right | ./remap KEY_RIGHTALT KEY_ENTER | mux -o Both &
 mux -i Both | ./modifiers | sudo uinput -d $LEFT &
 
