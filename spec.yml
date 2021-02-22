@@ -1,0 +1,17 @@
+- CMD: mux -c Left -c Right -c Both
+
+- JOB: mux -i Left | dual-function-keys -c dual-left.yml | mux -o Both
+- JOB: mux -i Right | dual-function-keys -c dual-right.yml | ./rhand | mux -o Both
+- JOB: mux -i Both | uinput -c hybrid.yml
+
+# Left side R-go
+- JOB: intercept -g $DEVNODE | mux -o Left
+  DEVICE:
+    LINK: /dev/input/by-id/usb-0911_2188-event-kbd
+
+# Right side R-go
+- JOB: intercept -g $DEVNODE | mux -o Right
+  DEVICE:
+    RIGHT: /dev/input/by-id/usb-Hantick_USB_Keyboard_HID_Composite_device-event-kbd
+
+
