@@ -8,8 +8,7 @@ int main(void) {
     setbuf(stdin, NULL), setbuf(stdout, NULL);
 
     int Shift_mode = 0;
-    int Transfer_mode = 0;
-    int Nav_mode = 0;
+    int Gui_mode = 0;
 
     #define MS 128
 
@@ -31,9 +30,14 @@ int main(void) {
 
     #define KEY_NAVIGATION KEY_KATAKANA
     #define KEY_TRANSFER KEY_HIRAGANA
+    #define KEY_SHIFTPROXY KEY_HENKAN
+
+    revmap[KEY_NAVIGATION] = "KEY_NAVIGATION";
+    revmap[KEY_TRANSFER] = "KEY_TRANSFER";
+    revmap[KEY_SHIFTPROXY] = "KEY_SHIFTPROXY";
 
     void send(struct input_event event, char* reason) {
-        if (event.code != KEY_NAVIGATION && event.code != KEY_TRANSFER) {
+        if (event.code != KEY_NAVIGATION && event.code != KEY_TRANSFER && event.code != KEY_SHIFTPROXY) {
             fwrite(&event, sizeof(event), 1, stdout);
         }
 
@@ -41,6 +45,7 @@ int main(void) {
             Actual[event.code] = event.value;
             if (event.value > -1) {
                 fprintf(log, "Shift_mode: %d ", Shift_mode);
+                fprintf(log, "Gui_mode: %d ", Gui_mode);
                 for (int i = 0; i < MS; ++i) {
                     if (Actual[i] == 0) {
                         fprintf(log, " ");
@@ -61,38 +66,48 @@ int main(void) {
 
         if (event.type == EV_KEY) {
             if (event.code == KEY_LEFTSHIFT) {
-                if (event.value == 1) {
+                if (event.value == 1 && !Gui_mode) {
                     Shift_mode = 1;
-                    // clear(Desired, 0);
                 }
                 passthrough = 0;
             }
+            if (event.code == KEY_LEFTALT) {
+                Gui_mode = event.value > 0 && !Shift_mode;
+                passthrough = 0;
+                if (!Gui_mode) {
+                    clear(Desired, 0);
+                }
+            }
 
-            void shiftmap(int key_f, int key_ctrl) {
-                Modal[key_ctrl] = 1;
-                if (event.code == key_f) {
+            void modal_map(int in_mode, int key_f, int key_ctrl) {
+                if (in_mode) {
                     if (Shift_mode) {
+                        Modal[key_ctrl] = 1;
+                    }
+                    if (event.code == key_f) {
                         passthrough = 0;
                         Desired[key_f] = 0;
                         Desired[key_ctrl] = event.value;
-                    } else {
-                        passthrough = 1;
-                        Desired[key_f] = -1;
-                        Desired[key_ctrl] = -1;
                     }
                 }
             }
 
-            shiftmap(KEY_LEFTSHIFT, KEY_LEFTSHIFT); // SHIFT
-            shiftmap(KEY_A, KEY_TRANSFER); // TRANSFER
-            shiftmap(KEY_S, KEY_NAVIGATION); // NAV
-            shiftmap(KEY_D, KEY_LEFTMETA); // GUI
-            shiftmap(KEY_F, KEY_LEFTCTRL); // CTRL
-            shiftmap(KEY_W, KEY_RIGHTALT); // AltGR: maybe more correct to call it RIGHTMETA
-            shiftmap(KEY_E, KEY_LEFTALT);  // ALT
+            modal_map(Shift_mode, KEY_LEFTSHIFT, KEY_SHIFTPROXY);
+            modal_map(Shift_mode, KEY_A, KEY_RIGHTSHIFT);
+            modal_map(Shift_mode, KEY_S, KEY_NAVIGATION);
+            modal_map(Shift_mode, KEY_D, KEY_LEFTALT);
+            modal_map(Shift_mode, KEY_F, KEY_LEFTCTRL);
+            modal_map(Shift_mode, KEY_W, KEY_TRANSFER);
+            modal_map(Shift_mode, KEY_E, KEY_RIGHTALT);
+
+            modal_map(Gui_mode, KEY_LEFTALT, KEY_LEFTMETA);
+            modal_map(Gui_mode, KEY_A, KEY_RIGHTSHIFT);
+            modal_map(Gui_mode, KEY_S, KEY_NAVIGATION);
+            modal_map(Gui_mode, KEY_D, KEY_LEFTALT);
+            modal_map(Gui_mode, KEY_F, KEY_LEFTCTRL);
+            modal_map(Gui_mode, KEY_W, KEY_TRANSFER);
 
             if (Actual[KEY_NAVIGATION]) {
-                // Nav mode
                 switch (event.code) {
                     case KEY_J: event.code = KEY_LEFT; break;
                     case KEY_K: event.code = KEY_DOWN; break;
@@ -107,7 +122,6 @@ int main(void) {
             }
 
             if (Actual[KEY_TRANSFER]) {
-                // Transfer mode
                 int c = event.code;
                 int r0 = c >= KEY_7 && c <= KEY_MINUS;
                 int r1 = c >= KEY_U && c <= KEY_LEFTBRACE;
@@ -120,6 +134,21 @@ int main(void) {
         }
 
         struct input_event original_event = event;
+
+        #define On(i) (Desired[i] > 0 || Actual[i] > 0)
+
+        if (Shift_mode) {
+            int num_on = 0;
+            for (int i = 0; i < MS; i++) {
+                if (Modal[i]) {
+                    num_on += On(i);
+                }
+            }
+            Desired[KEY_LEFTSHIFT] = num_on == 1 && On(KEY_SHIFTPROXY);
+            if (num_on == 0) {
+                Shift_mode = 0;
+            }
+        }
 
         for (int i = 0; i < MS; ++i) {
             if (Desired[i] == 0) {
@@ -142,20 +171,6 @@ int main(void) {
                     send(event, Desired[i] == 1 ? "desired on " : "desired two");
                 }
                 Desired[i] = -1;
-            }
-        }
-
-        if (Shift_mode) {
-            int on = 0;
-            for (int i = 0; i < MS; i++) {
-                if (Modal[i]) {
-                    if (Desired[i] > 0 || Actual[i] > 0) {
-                        on++;
-                    }
-                }
-            }
-            if (!on) {
-                Shift_mode = 0;
             }
         }
 

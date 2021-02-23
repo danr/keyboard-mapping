@@ -3,7 +3,7 @@
 
 #define REVMAP_SIZE 195
 
-char revmap[REVMAP_SIZE][40] = {
+char* revmap[REVMAP_SIZE] = {
     "KEY_RESERVED",         // 0
     "KEY_ESC",              // 1
     "KEY_1",                // 2
