@@ -16,7 +16,7 @@ RIGHT=/dev/input/by-id/usb-Hantick_USB_Keyboard_HID_Composite_device-event-kbd
 MAPPINGS:
   - KEY: KEY_SPACE
     TAP: KEY_BACKSPACE
-    HOLD: KEY_LEFTSHIFT
+    HOLD: KEY_YEN
   - KEY: KEY_LEFTALT
     TAP: KEY_DELETE
     HOLD: KEY_LEFTALT
@@ -46,21 +46,13 @@ keycode 108 = Mode_switch
 add Mod5 = Mode_switch
 add Mod1 = Alt_L Alt_R
 
-! space with shift is enter
-keycode 65 = space Return
+keycode 52 = colon semicolon
 
-! a A å Å
-keycode 38 = U61 U41 UE5 UC5
-! o O ä Ä
-keycode 39 = U6F U4F UE4 UC4
-! e E ö aÖ
-keycode 40 = U65 U45 UF6 UD6
-
-! : ; : ;
-keycode 52 = U3A U3B U3A U3B
+! Swe_mode uses these to map to åäö
+keycode 87 = aring Aring
+keycode 88 = adiaeresis Adiaeresis
+keycode 89 = odiaeresis Odiaeresis
 ') || true
 
 xset r rate 150 45
 xset b off
-
-tail -f log

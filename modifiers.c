@@ -9,6 +9,7 @@ int main(void) {
 
     int Shift_mode = 0;
     int Gui_mode = 0;
+    int Swe_mode = 0;
 
     #define MS 128
 
@@ -26,36 +27,53 @@ int main(void) {
     clear(Actual, 0);
     clear(Modal, 0);
 
-    FILE* log = fopen("log", "a");
+    FILE* log = stderr; //fopen("log", "a");
 
     #define KEY_NAVIGATION KEY_KATAKANA
-    #define KEY_TRANSFER KEY_HIRAGANA
+    #define KEY_TRANSFER   KEY_HIRAGANA
     #define KEY_SHIFTPROXY KEY_HENKAN
+    #define KEY_SHIFT      KEY_YEN
 
     revmap[KEY_NAVIGATION] = "KEY_NAVIGATION";
     revmap[KEY_TRANSFER] = "KEY_TRANSFER";
     revmap[KEY_SHIFTPROXY] = "KEY_SHIFTPROXY";
+    revmap[KEY_SHIFT] = "KEY_SHIFT";
+
+    int Unreal[256];
+
+    clear(Unreal, 0);
+
+    Unreal[KEY_NAVIGATION] = 1;
+    Unreal[KEY_TRANSFER] = 1;
+    Unreal[KEY_SHIFTPROXY] = 1;
+    Unreal[KEY_SHIFT] = 1;
+
+    int unreal(int i) {
+        return i >= 0 && i < 256 && Unreal[i];
+    }
 
     void send(struct input_event event, char* reason) {
-        if (event.code != KEY_NAVIGATION && event.code != KEY_TRANSFER && event.code != KEY_SHIFTPROXY) {
+        if (event.type != EV_KEY || !unreal(event.code)) {
             fwrite(&event, sizeof(event), 1, stdout);
         }
 
         if (event.type == EV_KEY && event.code < MS) {
             Actual[event.code] = event.value;
-            if (event.value > -1) {
-                fprintf(log, "Shift_mode: %d ", Shift_mode);
-                fprintf(log, "Gui_mode: %d ", Gui_mode);
-                for (int i = 0; i < MS; ++i) {
-                    if (Actual[i] == 0) {
-                        fprintf(log, " ");
-                    } else {
-                        fprintf(log, "%c", revmap[i][4]);
-                    }
+        }
+
+        if (event.type == EV_KEY && event.value > -1) {
+            fprintf(log, "Shift_mode: %d ", Shift_mode);
+            fprintf(log, "Gui_mode: %d ", Gui_mode);
+            fprintf(log, "Swe_mode: %d ", Swe_mode);
+            for (int i = 0; i < MS; ++i) {
+                if (Actual[i] == 0) {
+                    fprintf(log, " ");
+                } else {
+                    fprintf(log, "%c", revmap[i][4]);
                 }
-                fprintf(log, " %d %s %s %d\n", event.value, reason, revmap[event.code], event.code);
-                fflush(log);
             }
+            fprintf(log, " %d %s %s %d\n", event.value, reason, revmap[event.code], event.code);
+            fflush(log);
         }
     };
 
@@ -65,14 +83,16 @@ int main(void) {
         int passthrough = 1;
 
         if (event.type == EV_KEY) {
-            if (event.code == KEY_LEFTSHIFT) {
-                if (event.value == 1 && !Gui_mode) {
+            if (event.code == KEY_YEN && !Gui_mode) {
+                if (event.value == 1) {
                     Shift_mode = 1;
                 }
                 passthrough = 0;
             }
             if (event.code == KEY_LEFTALT) {
-                Gui_mode = event.value > 0 && !Shift_mode;
+                Gui_mode = event.value > 0;
+                Shift_mode = 0;
+
                 passthrough = 0;
                 if (!Gui_mode) {
                     clear(Desired, 0);
@@ -92,7 +112,7 @@ int main(void) {
                 }
             }
 
-            modal_map(Shift_mode, KEY_LEFTSHIFT, KEY_SHIFTPROXY);
+            modal_map(Shift_mode, KEY_SHIFT, KEY_SHIFTPROXY);
             modal_map(Shift_mode, KEY_A, KEY_RIGHTSHIFT);
             modal_map(Shift_mode, KEY_S, KEY_NAVIGATION);
             modal_map(Shift_mode, KEY_D, KEY_LEFTALT);
@@ -100,12 +120,32 @@ int main(void) {
             modal_map(Shift_mode, KEY_W, KEY_TRANSFER);
             modal_map(Shift_mode, KEY_E, KEY_RIGHTALT);
 
+            if (Shift_mode && event.code == KEY_RIGHTSHIFT) {
+                if (event.value == 1) {
+                    Swe_mode = 1 - Swe_mode;
+                }
+            }
+
             modal_map(Gui_mode, KEY_LEFTALT, KEY_LEFTMETA);
             modal_map(Gui_mode, KEY_A, KEY_RIGHTSHIFT);
             modal_map(Gui_mode, KEY_S, KEY_NAVIGATION);
             modal_map(Gui_mode, KEY_D, KEY_LEFTALT);
             modal_map(Gui_mode, KEY_F, KEY_LEFTCTRL);
-            modal_map(Gui_mode, KEY_W, KEY_TRANSFER);
+
+            if (Swe_mode) {
+                switch (event.code) {
+                    case KEY_LEFTSHIFT: event.code = KEY_Z; break;
+                    case KEY_102ND: event.code = KEY_KP1; break;
+                    case KEY_Z:     event.code = KEY_KP2; break;
+                    case KEY_X:     event.code = KEY_KP3; break;
+                    /*
+                       // X will interpret these as 87 88 89, so execute these:
+                       keycode 87 = aring Aring
+                       keycode 88 = adiaeresis Adiaeresis
+                       keycode 89 = odiaeresis Odiaeresis
+                    */
+                }
+            }
 
             if (Actual[KEY_NAVIGATION]) {
                 switch (event.code) {
@@ -135,7 +175,9 @@ int main(void) {
 
         struct input_event original_event = event;
 
-        #define On(i) (Desired[i] > 0 || Actual[i] > 0)
+        int On(int i) {
+            return Desired[i] > 0 || Actual[i] > 0;
+        };
 
         if (Shift_mode) {
             int num_on = 0;
