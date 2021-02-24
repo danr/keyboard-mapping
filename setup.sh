@@ -2,6 +2,10 @@
 set -x
 set -euo pipefail
 
+for i in *.c; do
+    gcc "$i" -o "$(basename "$i" .c)" -O2
+done
+
 sudo rm -f /dev/shm/{Both,Left,Right} || true
 sudo killall intercept mux uinput dual-function-keys || true
 # sudo killall xcape || true
