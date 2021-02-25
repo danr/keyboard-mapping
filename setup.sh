@@ -6,19 +6,17 @@ for i in *.c; do
     gcc "$i" -o "$(basename "$i" .c)" -O2
 done
 
-sudo rm -f /dev/shm/{Both,Left,Right} || true
 sudo killall intercept mux uinput dual-function-keys || true
 # sudo killall xcape || true
-
-mux -c Left -c Right -c Both
 
 LEFT=/dev/input/by-id/usb-0911_2188-event-kbd
 RIGHT=/dev/input/by-id/usb-Hantick_USB_Keyboard_HID_Composite_device-event-kbd
 
-sudo intercept -g $LEFT | mux -o Left &
-sudo intercept -g $RIGHT | mux -o Right &
-mux -i Left  | ./remap KEY_SPACE KEY_YEN | mux -o Both &
-mux -i Right | ./remap KEY_RIGHTALT KEY_ENTER | mux -o Both &
+sudo rm -f /dev/shm/Both || true
+mux -c Both
+
+sudo intercept -g $LEFT  | ./remap KEY_SPACE    KEY_YEN   | mux -o Both &
+sudo intercept -g $RIGHT | ./remap KEY_RIGHTALT KEY_ENTER | mux -o Both &
 mux -i Both | dual-function-keys -c <(echo '
 MAPPINGS:
   - KEY: KEY_YEN
