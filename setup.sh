@@ -16,21 +16,19 @@ mux -c Left -c Right -c Both
 LEFT=/dev/input/by-id/usb-0911_2188-event-kbd
 RIGHT=/dev/input/by-id/usb-Hantick_USB_Keyboard_HID_Composite_device-event-kbd
 
-> dual-left.yml echo '
+sudo intercept -g $LEFT | mux -o Left &
+sudo intercept -g $RIGHT | mux -o Right &
+mux -i Left  | ./remap KEY_SPACE KEY_YEN | mux -o Both &
+mux -i Right | ./remap KEY_RIGHTALT KEY_ENTER | mux -o Both &
+mux -i Both | dual-function-keys -c <(echo '
 MAPPINGS:
-  - KEY: KEY_SPACE
+  - KEY: KEY_YEN
     TAP: KEY_BACKSPACE
     HOLD: KEY_YEN
   - KEY: KEY_LEFTALT
     TAP: KEY_DELETE
     HOLD: KEY_LEFTALT
-'
-
-sudo intercept -g $LEFT | mux -o Left &
-sudo intercept -g $RIGHT | mux -o Right &
-mux -i Left  | dual-function-keys -c dual-left.yml | mux -o Both &
-mux -i Right | ./remap KEY_RIGHTALT KEY_ENTER | mux -o Both &
-mux -i Both | ./modifiers | sudo uinput -d $LEFT &
+') | ./modifiers | sudo uinput -d $LEFT &
 
 sleep 0.4
 
