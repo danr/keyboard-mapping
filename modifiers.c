@@ -87,7 +87,9 @@ int main(void) {
         if (event.type == EV_KEY && oneshot) {
             passthrough = 0;
             if (event.value == 1) {
-                send(event, "oneshot    ");
+                send(event, "oneshot on ");
+                event.value = 0;
+                send(event, "oneshot off");
                 Shift_mode = 0;
                 Gui_mode = 0;
                 oneshot = 0;
