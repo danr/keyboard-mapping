@@ -9,7 +9,6 @@ done
 sudo rm -f /dev/shm/{Both,Left,Right} || true
 sudo killall intercept mux uinput dual-function-keys || true
 # sudo killall xcape || true
-sudo rm -f log || true
 
 mux -c Left -c Right -c Both
 
