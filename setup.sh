@@ -40,21 +40,30 @@ if test -e $Thinkpad; then
         ./rhand |
         ./remap KEY_CAPSLOCK KEY_ESC      \
                 KEY_ESC      KEY_CAPSLOCK \
-                KEY_SPACE    KEY_YEN   \
-                KEY_RIGHTALT KEY_SPACE \
-                KEY_SYSRQ    KEY_ENTER |
+                KEY_SPACE    KEY_YEN      \
+                KEY_RIGHTALT KEY_SPACE    \
+                KEY_SYSRQ    KEY_ENTER    \
+                KEY_LEFTCTRL KEY_KATAKANA \
+                |
         dual-function-keys -c <(echo '
             MAPPINGS:
               - KEY: KEY_YEN
                 TAP: KEY_BACKSPACE
-                HOLD: KEY_YEN
+                HOLD: KEY_LEFTCTRL
               - KEY: KEY_LEFTALT
                 TAP: KEY_DELETE
                 HOLD: KEY_LEFTALT
               - KEY: KEY_SLASH
                 TAP: KEY_SLASH
                 HOLD: KEY_RIGHTSHIFT
-        ') | ./modifiers | sudo uinput -d $Thinkpad &
+        ') |
+        ./swe_and_nav |
+        dual-function-keys -c <(echo '
+            MAPPINGS:
+              - KEY: KEY_KP0
+                TAP: KEY_Z
+                HOLD: KEY_RIGHTSHIFT
+        ') | sudo uinput -d $Thinkpad &
 fi
 
 sleep 0.4
