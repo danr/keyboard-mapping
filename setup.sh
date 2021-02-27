@@ -7,25 +7,50 @@ for i in *.c; do
 done
 
 sudo killall intercept mux uinput dual-function-keys || true
-# sudo killall xcape || true
+sudo killall xcape || true
 
+# R-go
 LEFT=/dev/input/by-id/usb-0911_2188-event-kbd
 RIGHT=/dev/input/by-id/usb-Hantick_USB_Keyboard_HID_Composite_device-event-kbd
 
-sudo rm -f /dev/shm/Both || true
-mux -c Both
+if test -e $LEFT && test -e $RIGHT; then
+    sudo rm -f /dev/shm/Both || true
+    mux -c Both
 
-sudo intercept -g $LEFT  | ./remap KEY_SPACE    KEY_YEN   | mux -o Both &
-sudo intercept -g $RIGHT | ./remap KEY_RIGHTALT KEY_ENTER | mux -o Both &
-mux -i Both | dual-function-keys -c <(echo '
-MAPPINGS:
-  - KEY: KEY_YEN
-    TAP: KEY_BACKSPACE
-    HOLD: KEY_YEN
-  - KEY: KEY_LEFTALT
-    TAP: KEY_DELETE
-    HOLD: KEY_LEFTALT
-') | ./modifiers | sudo uinput -d $LEFT &
+    sudo intercept -g $LEFT  | ./remap KEY_SPACE    KEY_YEN   | mux -o Both &
+    sudo intercept -g $RIGHT | ./remap KEY_RIGHTALT KEY_ENTER | mux -o Both &
+    mux -i Both | dual-function-keys -c <(echo '
+    MAPPINGS:
+      - KEY: KEY_YEN
+        TAP: KEY_BACKSPACE
+        HOLD: KEY_YEN
+      - KEY: KEY_LEFTALT
+        TAP: KEY_DELETE
+        HOLD: KEY_LEFTALT
+    ') | ./modifiers | sudo uinput -d $LEFT &
+fi
+
+Thinkpad=/dev/input/by-path/platform-i8042-serio-0-event-kbd
+
+if test -e $Thinkpad; then
+    sudo intercept -g $Thinkpad |
+        ./remap KEY_SPACE    KEY_YEN   \
+                KEY_RIGHTALT KEY_SPACE \
+                KEY_SYSRQ    KEY_ENTER |
+        ./rhand |
+        dual-function-keys -c <(echo '
+            MAPPINGS:
+              - KEY: KEY_YEN
+                TAP: KEY_BACKSPACE
+                HOLD: KEY_YEN
+              - KEY: KEY_LEFTALT
+                TAP: KEY_DELETE
+                HOLD: KEY_LEFTALT
+              - KEY: KEY_SLASH
+                TAP: KEY_SLASH
+                HOLD: KEY_RIGHTSHIFT
+        ') | ./modifiers | sudo uinput -d $Thinkpad &
+fi
 
 sleep 0.4
 
