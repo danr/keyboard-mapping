@@ -56,6 +56,9 @@ if test -e $Thinkpad; then
               - KEY: KEY_SLASH
                 TAP: KEY_SLASH
                 HOLD: KEY_RIGHTSHIFT
+              - KEY: KEY_KATAKANA
+                TAP: KEY_HIRAGANA
+                HOLD: KEY_KATAKANA
         ') |
         ./swe_and_nav |
         dual-function-keys -c <(echo '

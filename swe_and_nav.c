@@ -64,16 +64,9 @@ int main(void) {
                 }
             }
 
-            if (event.code == KEY_KATAKANA) {
-                passthrough = 0;
-                if (State[KEY_LEFTCTRL]) {
-                    if (event.value == 1) {
-                        Nav_mode = 1 - Nav_mode;
-                        print_state(event, "Nav tog    ");
-                    }
-                } else {
-                    Nav_mode = event.value != 0;
-                    print_state(event, "Nav mod    ");
+            if (event.code == KEY_HIRAGANA) {
+                if (event.value == 1) {
+                    Nav_mode = 1 - Nav_mode;
                 }
             }
 
@@ -92,7 +85,7 @@ int main(void) {
                 }
             }
 
-            if (Nav_mode) {
+            if (Nav_mode || State[KEY_KATAKANA]) {
                 switch (event.code) {
                     case KEY_J: event.code = KEY_LEFT; break;
                     case KEY_K: event.code = KEY_DOWN; break;
