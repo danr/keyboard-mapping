@@ -58,7 +58,7 @@ Here I repurpose left alt. In `gui` mode these are accessible just like in shift
 
 #### Swedish mode
 
-Pressing the left shift together with right shift toggles swedish mode.
+Pressing the left shift together with escape (remapped to caps lock) toggles swedish mode.
 It replaces the left hand's `shift compose ; q` keys with `; å ä ö`.
 This is done by mapping to unused keys (on the numpad) and then
 making them be åäö using xmodmap.
@@ -69,13 +69,11 @@ The left shift when tapped sends backspace and the gui key when tapped sends del
 
 #### Other remappings
 
-Enter is next to left space (on Alt Gr).
-
-Using xmodmap:
-
-- Semicolon and colon are swapped
+- Enter is next to left space (on Alt Gr).
+- On laptop: Space is on AltGr and Enter is on the key next to it
+  (On thinkpad this is PrtSc).
 - Escape and caps lock are swapped
-
+- Semicolon and colon are swapped (using xmodmap)
 
 ### rhand.c
 
@@ -84,3 +82,12 @@ the hands become a little bit more separated on a normal keyboard (like on a lap
 Another advantage is that the right hand can now more easily reach two modifiers
 to use as space and enter. Then the left hand can use the big space bar as the
 shift modifier.
+
+Now we don't have a button for backspace, backslash, equals and z.
+These could all be put in the middlemost row (that is now free) consisting
+of `6`, dvorak `f`, `d` and `b`. But there are more convenient ways to solve this:
+
+- backspace: already on space, but we put a copy on `f`,
+- enter: already on prtsc/menu, but we put a copy on `d`,
+- backslash: put on `b`,
+- z: dual-function-keys on right shift: z when tapped, right shift when held.

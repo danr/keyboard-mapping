@@ -19,25 +19,30 @@ if test -e $LEFT && test -e $RIGHT; then
 
     sudo intercept -g $LEFT  | ./remap KEY_SPACE    KEY_YEN   | mux -o Both &
     sudo intercept -g $RIGHT | ./remap KEY_RIGHTALT KEY_ENTER | mux -o Both &
-    mux -i Both | dual-function-keys -c <(echo '
-    MAPPINGS:
-      - KEY: KEY_YEN
-        TAP: KEY_BACKSPACE
-        HOLD: KEY_YEN
-      - KEY: KEY_LEFTALT
-        TAP: KEY_DELETE
-        HOLD: KEY_LEFTALT
-    ') | ./modifiers | sudo uinput -d $LEFT &
+    mux -i Both |
+        ./remap KEY_CAPSLOCK KEY_ESC      \
+                KEY_ESC      KEY_CAPSLOCK |
+        dual-function-keys -c <(echo '
+            MAPPINGS:
+              - KEY: KEY_YEN
+                TAP: KEY_BACKSPACE
+                HOLD: KEY_YEN
+              - KEY: KEY_LEFTALT
+                TAP: KEY_DELETE
+                HOLD: KEY_LEFTALT
+            ') | ./modifiers | sudo uinput -d $LEFT &
 fi
 
 Thinkpad=/dev/input/by-path/platform-i8042-serio-0-event-kbd
 
 if test -e $Thinkpad; then
     sudo intercept -g $Thinkpad |
-        ./remap KEY_SPACE    KEY_YEN   \
+        ./rhand |
+        ./remap KEY_CAPSLOCK KEY_ESC      \
+                KEY_ESC      KEY_CAPSLOCK \
+                KEY_SPACE    KEY_YEN   \
                 KEY_RIGHTALT KEY_SPACE \
                 KEY_SYSRQ    KEY_ENTER |
-        ./rhand |
         dual-function-keys -c <(echo '
             MAPPINGS:
               - KEY: KEY_YEN
@@ -57,12 +62,6 @@ sleep 0.4
 setxkbmap dvorak -option "compose:102"
 
 xmodmap <(echo '
-! Swap Caps_Lock and Escape
-remove Lock = Caps_Lock
-keysym Escape = Caps_Lock
-keysym Caps_Lock = Escape
-add Lock = Caps_Lock
-
 ! mode switch on AltGr
 clear Mod1
 clear Mod5

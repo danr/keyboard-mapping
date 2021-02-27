@@ -15,6 +15,7 @@ int main(void) {
                 case KEY_0:
                 case KEY_MINUS:
                 case KEY_EQUAL:
+                case KEY_BACKSPACE:
 
                 case KEY_U:
                 case KEY_I:
@@ -34,12 +35,24 @@ int main(void) {
                 case KEY_DOT:
                 case KEY_SLASH:
                 case KEY_RIGHTSHIFT:
-                    event.code--;
-                    break;
+                    event.code--; break;
 
                 case KEY_BACKSLASH:
-                    event.code = KEY_APOSTROPHE;
-                    break;
+                    event.code = KEY_APOSTROPHE; break;
+
+                case KEY_ENTER:
+                    // dvorak =
+                    event.code = KEY_RIGHTBRACE; break;
+
+                case KEY_H:
+                    event.code = KEY_ENTER; break;
+
+                case KEY_N:
+                    event.code = KEY_BACKSLASH; break;
+
+                case KEY_Y:
+                    event.code = KEY_BACKSPACE; break;
+
             }
         }
 

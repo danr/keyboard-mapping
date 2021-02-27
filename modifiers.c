@@ -145,9 +145,11 @@ int main(void) {
                 passthrough = 0;
             }
 
-            if (Shift_mode && event.code == KEY_RIGHTSHIFT) {
+            if (Shift_mode && event.code == KEY_ESC) {
+                passthrough = 0;
                 if (event.value == 1) {
                     Swe_mode = 1 - Swe_mode;
+                    print_state(event, "Swe_mode   ");
                 }
             }
 
