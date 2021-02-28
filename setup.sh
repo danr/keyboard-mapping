@@ -56,9 +56,9 @@ if test -e $Thinkpad; then
               - KEY: KEY_SLASH
                 TAP: KEY_SLASH
                 HOLD: KEY_RIGHTSHIFT
-              - KEY: KEY_KATAKANA
-                TAP: KEY_HIRAGANA
-                HOLD: KEY_KATAKANA
+              - KEY: KEY_ENTER
+                TAP: KEY_ENTER
+                HOLD: KEY_RIGHTALT
         ') |
         ./swe_and_nav |
         dual-function-keys -c <(echo '
@@ -91,3 +91,5 @@ keycode 89 = odiaeresis Odiaeresis
 
 xset r rate 150 45
 xset b off
+
+python agr.py
