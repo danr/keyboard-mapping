@@ -69,6 +69,36 @@ if test -e $Thinkpad; then
         ') | sudo uinput -d $Thinkpad &
 fi
 
+Kadv=/dev/input/by-id/usb-05f3_0007-event-kbd
+if test -e $Kadv; then
+    sudo intercept -g $Kadv |
+        ./remap KEY_CAPSLOCK   KEY_ESC        \
+                KEY_ESC        KEY_CAPSLOCK   \
+                KEY_BACKSPACE  KEY_YEN        \
+                KEY_DELETE     KEY_LEFTALT    \
+                KEY_LEFTCTRL   KEY_LEFTMETA   \
+                KEY_RIGHTCTRL  KEY_RIGHTALT   \
+                KEY_LEFTBRACE  KEY_RIGHTBRACE \
+                KEY_RIGHTBRACE KEY_LEFTBRACE  \
+                |
+        dual-function-keys -c <(echo '
+            MAPPINGS:
+              - KEY: KEY_YEN
+                TAP: KEY_BACKSPACE
+                HOLD: KEY_LEFTCTRL
+              - KEY: KEY_LEFTALT
+                TAP: KEY_DELETE
+                HOLD: KEY_LEFTALT
+        ') |
+        ./swe_and_nav | dual-function-keys -c <(echo '
+            MAPPINGS:
+              - KEY: KEY_KP0
+                TAP: KEY_Z
+                HOLD: KEY_RIGHTSHIFT
+        ') | sudo uinput -d $Kadv &
+fi
+
+
 sleep 0.4
 
 setxkbmap dvorak -option "compose:102"
