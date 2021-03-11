@@ -7,9 +7,6 @@
 int main(void) {
     setbuf(stdin, NULL), setbuf(stdout, NULL);
 
-    int Swe_mode = 0;
-    int Nav_mode = 0;
-
     #define STATES 128
 
     int State[STATES];
@@ -22,11 +19,9 @@ int main(void) {
 
     clear(State, 0);
 
-    FILE* log = stderr; //fopen("log", "a");
+    FILE* log = stderr;
 
     void print_state(struct input_event event, char* reason) {
-        fprintf(log, "Swe_mode: %d ", Swe_mode);
-        fprintf(log, "Nav_mode: %d ", Nav_mode);
         for (int i = 0; i < STATES; ++i) {
             if (State[i] == 0) {
                 fprintf(log, " ");
@@ -56,36 +51,7 @@ int main(void) {
         int passthrough = 1;
 
         if (event.type == EV_KEY) {
-            if (State[KEY_LEFTCTRL] && event.code == KEY_ESC) {
-                passthrough = 0;
-                if (event.value == 1) {
-                    Swe_mode = 1 - Swe_mode;
-                    print_state(event, "Swe_mode   ");
-                }
-            }
-
-            if (event.code == KEY_HIRAGANA) {
-                if (event.value == 1) {
-                    Nav_mode = 1 - Nav_mode;
-                }
-            }
-
-            if (Swe_mode) {
-                switch (event.code) {
-                    case KEY_LEFTSHIFT: event.code = KEY_KP0; break;
-                    case KEY_102ND: event.code = KEY_KP1; break;
-                    case KEY_Z:     event.code = KEY_KP2; break;
-                    case KEY_X:     event.code = KEY_KP3; break;
-                    /*
-                       // X will interpret these as 87 88 89, so execute these:
-                       keycode 87 = aring Aring
-                       keycode 88 = adiaeresis Adiaeresis
-                       keycode 89 = odiaeresis Odiaeresis
-                    */
-                }
-            }
-
-            if (Nav_mode || State[KEY_KATAKANA]) {
+            if (State[KEY_KATAKANA]) {
                 switch (event.code) {
                     case KEY_J: event.code = KEY_LEFT; break;
                     case KEY_K: event.code = KEY_DOWN; break;

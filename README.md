@@ -1,14 +1,5 @@
 ## keyboard mapping
 
-Keymap loosely inspired by callum's qmk firmware
-https://github.com/qmk/qmk_firmware/tree/master/users/callum
-
-Designed for the split keyboard R-go which has a split space bar.
-Its two sides turn up as two different sources so with interception tools
-it is possible to make the keyboards send different keys.
-The setup here makes a multi-stage shift-based modifier on the left
-space bar and uses the right as a normal space.
-
 ### Running
 
 Dependencies: interception tools and its plugin dual-function-keys.
@@ -16,64 +7,6 @@ Dependencies: interception tools and its plugin dual-function-keys.
     ./setup.sh
 
 This compiles all dependencies and starts the required processes.
-
-#### Shift modifier on left thumb with further modifiers on home row
-
-The idea is to have a shift modifier on the left thumb.
-When pressed it also enables further modifier keys around the left hand home row:
-
-    home row:     shift  ctrl  alt  nav  oneshot
-                   (a)   (o)   (e)  (u)   (i)
-
-**alt**, **ctrl**:
-  This releases the simulated shift key and instead makes alt or ctrl pressed.
-
-**shift**:
-  The simulated shift is released when any other modifier is activated.
-  If shift needs to be pressed as too use this.
-
-**nav**:
-  This makes the right hand home row become arrow keys and the row
-  below that home, pg dn, pg up and end.
-
-**oneshot**:
-  This oneshot mode makes the combinations that are otherwise impossible
-  possible to create, like `ctrl a`. This is a three step process:
-
-  1. Press down the modifiers you want (in the example: `ctrl`)
-  2. Now press the oneshot trigger (in the example: `i`)
-     Now the keyboard is "frozen": key up events are ignored and it is waiting for a key down event.
-  3. Press the desired key (in the example: `a`).
-     This will happen under the desired modifiers. Now everything else is released and
-     the keyboard is unfrozen and the shift modifier mode is exited.
-
-#### GUI on next key of left thumb
-
-Left thumb needs to have another key as well for the window manager.
-This modifier key has many names like `gui`, `super`, `windows key`, `leftmeta`.
-Here I repurpose left alt. In `gui` mode these are accessible just like in shift mode:
-
-    home row:     shift  ctrl  alt  nav  oneshot
-                   (a)   (o)   (e)  (u)   (i)
-
-#### Swedish mode
-
-Pressing the left shift together with escape (remapped to caps lock) toggles swedish mode.
-It replaces the left hand's `shift compose ; q` keys with `; å ä ö`.
-This is done by mapping to unused keys (on the numpad) and then
-making them be åäö using xmodmap.
-
-#### Dual function keys
-
-The left shift when tapped sends backspace and the gui key when tapped sends delete.
-
-#### Other remappings
-
-- Enter is next to left space (on Alt Gr).
-- On laptop: Space is on AltGr and Enter is on the key next to it
-  (On thinkpad this is PrtSc).
-- Escape and caps lock are swapped
-- Semicolon and colon are swapped (using xmodmap)
 
 ### rhand.c
 
@@ -91,3 +24,29 @@ of `6`, dvorak `f`, `d` and `b`. But there are more convenient ways to solve thi
 - enter: already on prtsc/menu, but we put a copy on `d`,
 - backslash: put on `b`,
 - z: dual-function-keys on right shift: z when tapped, right shift when held.
+
+### remap.c
+
+Remaps pairwise using the names in `linux/input.h`, so this makes
+pressing A send a B press event, and pressing C send a D press event:
+
+    ./remap KEY_A KEY_B KEY_C KEY_D
+
+### homerow_nav.c
+
+Makes the homerow become the arrow keys when KEY_KATAKANA is pressed.
+You can get such a katakana key using remap.
+
+### python agr.py
+
+Adds modifiers to the alt gr mode switch. Some are obtained from
+my kak conf and written to kakmap.py.
+
+### other changes activated in ./setup.sh
+
+- Enter is next to left space (on Alt Gr).
+- On laptop: Space is on AltGr and Enter is on the key next to it
+  (On thinkpad this is PrtSc).
+- Escape and caps lock are swapped
+- Semicolon and colon are swapped (using xmodmap)
+
