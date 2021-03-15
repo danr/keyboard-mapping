@@ -43,7 +43,7 @@ if test -e $Kadv; then
         ./remap KEY_CAPSLOCK   KEY_ESC        \
                 KEY_ESC        KEY_CAPSLOCK   \
                 KEY_DELETE     KEY_LEFTALT    \
-                KEY_BACKSPACE  KEY_YEN        \
+                KEY_BACKSPACE  KEY_LEFTCTRL   \
                 KEY_LEFTALT    KEY_BACKSPACE  \
                 KEY_LEFTCTRL   KEY_LEFTMETA   \
                 KEY_RIGHTCTRL  KEY_RIGHTALT   \
@@ -53,7 +53,7 @@ if test -e $Kadv; then
                 |
         dual-function-keys -c <(echo '
             MAPPINGS:
-              - KEY: KEY_YEN
+              - KEY: KEY_LEFTCTRL
                 TAP: KEY_BACKSPACE
                 HOLD: KEY_LEFTCTRL
               - KEY: KEY_LEFTALT
