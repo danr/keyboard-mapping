@@ -27,7 +27,7 @@ int main(void) {
             State[event.code] = event.value;
         }
 
-        if (event.type != 0) {
+        if (event.type == 1) {
             for (int i = 0; i < NUM_WATCHES; ++i) {
                 if (State[i] == 0) {
                     fprintf(log, " ");

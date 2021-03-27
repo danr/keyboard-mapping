@@ -39,7 +39,7 @@ fi
 
 Kadv=/dev/input/by-id/usb-05f3_0007-event-kbd
 if test -e $Kadv; then
-    sudo intercept -g $Kadv |
+    sudo intercept -g $Kadv | # ./keylogger |
         ./remap KEY_CAPSLOCK   KEY_ESC        \
                 KEY_ESC        KEY_CAPSLOCK   \
                 KEY_DELETE     KEY_LEFTALT    \
