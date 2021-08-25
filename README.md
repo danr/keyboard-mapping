@@ -50,3 +50,23 @@ my kak conf and written to kakmap.py.
 - Escape and caps lock are swapped
 - Semicolon and colon are swapped (using xmodmap)
 
+
+### Kinesis advantage 2
+
+Turn off noises with
+- Program + F8
+- Program + Shift + F8
+
+Default mapping is:
+
+    ]                                         [
+                                              \
+
+     ` compose Left Right        Up Down = /
+
+Remap it to
+
+    `                                         =
+                                              /
+
+     compose \ [ ]        Left Down Up Right

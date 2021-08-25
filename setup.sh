@@ -37,7 +37,14 @@ if test -e $Thinkpad; then
         sudo uinput -d $Thinkpad &
 fi
 
-Kadv=/dev/input/by-id/usb-05f3_0007-event-kbd
+Kadv1=/dev/input/by-id/usb-05f3_0007-event-kbd
+Kadv2=/dev/input/by-id/usb-Kinesis_Advantage2_Keyboard_314159265359-if01-event-kbd
+if test -e $Kadv1; then
+    Kadv=$Kadv1
+else
+    Kadv=$Kadv2
+fi
+
 if test -e $Kadv; then
     sudo intercept -g $Kadv | # ./keylogger |
         ./remap KEY_CAPSLOCK   KEY_ESC        \
