@@ -52,4 +52,4 @@ input = '\n'.join(cmds)
 if not Quiet:
     print(input)
 if not DryRun:
-    run(['xmodmap', '-'], input=input, text=True)
+    print(run(['xmodmap', '-'], input=input, text=True))
